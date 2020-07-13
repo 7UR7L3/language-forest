@@ -1,0 +1,218 @@
+<!-- 
+- use https://cors-anywhere.herokuapp.com/ when necessary
+- request https://glottolog.org/meta/downloads to grab the latest tree_glottolog_newick.txt
+- request https://cdstar.shh.mpg.de/bitstreams/EAEA0-18EC-5079-0173-0/tree_glottolog_newick.txt or whatever it happens to be
+- parse it with https://github.com/jasondavies/newick.js/blob/master/src/newick.js (split on `;` first)
+- gotta figure out a good way to render it i guess
+- can query wikidata directly for number of speakers and wikipedia links etc
+ -->
+
+
+<html>
+
+<head>
+<style>
+
+body
+{
+	background: #AACCCC;
+	font-family: monospace;
+}
+
+a
+{
+	display: inline-block; /* lmfao chrome actually lags out for a bit without this */
+
+	font-size: smaller;
+	font-style: italic;
+}
+
+/* Wikipedia -- direcly stolen from https://www.gwern.net/ */
+a[href*="wikipedia.org"]::after {
+	content: "";
+	/* WP is used on almost every page, so make an exception and inline it */
+	background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NDAgNTEyIj48cGF0aCBkPSJNNjQwIDUxLjJsLS4zIDEyLjJjLTI4LjEuOC00NSAxNS44LTU1LjggNDAuMy0yNSA1Ny44LTEwMy4zIDI0MC0xNTUuMyAzNTguNkg0MTVsLTgxLjktMTkzLjFjLTMyLjUgNjMuNi02OC4zIDEzMC05OS4yIDE5My4xLS4zLjMtMTUgMC0xNS0uM0MxNzIgMzUyLjMgMTIyLjggMjQzLjQgNzUuOCAxMzMuNCA2NC40IDEwNi43IDI2LjQgNjMuNC4yIDYzLjdjMC0zLjEtLjMtMTAtLjMtMTQuMmgxNjEuOXYxMy45Yy0xOS4yIDEuMS01Mi44IDEzLjMtNDMuMyAzNC4yIDIxLjkgNDkuNyAxMDMuNiAyNDAuMyAxMjUuNiAyODguNiAxNS0yOS43IDU3LjgtMTA5LjIgNzUuMy0xNDIuOC0xMy45LTI4LjMtNTguNi0xMzMuOS03Mi44LTE2MC05LjctMTcuOC0zNi4xLTE5LjQtNTUuOC0xOS43VjQ5LjhsMTQyLjUuM3YxMy4xYy0xOS40LjYtMzguMSA3LjgtMjkuNCAyNi4xIDE4LjkgNDAgMzAuNiA2OC4xIDQ4LjEgMTA0LjcgNS42LTEwLjggMzQuNy02OS40IDQ4LjEtMTAwLjggOC45LTIwLjYtMy45LTI4LjYtMzguNi0yOS40LjMtMy42IDAtMTAuMy4zLTEzLjYgNDQuNC0uMyAxMTEuMS0uMyAxMjMuMS0uNnYxMy42Yy0yMi41LjgtNDUuOCAxMi44LTU4LjEgMzEuN2wtNTkuMiAxMjIuOGM2LjQgMTYuMSA2My4zIDE0Mi44IDY5LjIgMTU2LjdMNTU5LjIgOTEuOGMtOC42LTIzLjEtMzYuNC0yOC4xLTQ3LjItMjguM1Y0OS42bDEyNy44IDEuMS4yLjV6Ii8+PC9zdmc+');
+	background-repeat: no-repeat;
+	background-size: 0.75em;
+	background-position: right 1px top;
+	width: 0.825em;
+	height: 0.825em;
+	display: inline-block;
+	vertical-align: baseline;
+	opacity: 0.825;
+}
+
+a[href*="glottolog.org"]::after {
+	content: "";
+	background-image: url('data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+CjxzdmcKICAgeG1sbnM6ZGM9Imh0dHA6Ly9wdXJsLm9yZy9kYy9lbGVtZW50cy8xLjEvIgogICB4bWxuczpjYz0iaHR0cDovL2NyZWF0aXZlY29tbW9ucy5vcmcvbnMjIgogICB4bWxuczpyZGY9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkvMDIvMjItcmRmLXN5bnRheC1ucyMiCiAgIHhtbG5zOnN2Zz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgeG1sbnM6c29kaXBvZGk9Imh0dHA6Ly9zb2RpcG9kaS5zb3VyY2Vmb3JnZS5uZXQvRFREL3NvZGlwb2RpLTAuZHRkIgogICB4bWxuczppbmtzY2FwZT0iaHR0cDovL3d3dy5pbmtzY2FwZS5vcmcvbmFtZXNwYWNlcy9pbmtzY2FwZSIKICAgaW5rc2NhcGU6dmVyc2lvbj0iMS4wICg0MDM1YTRmYjQ5LCAyMDIwLTA1LTAxKSIKICAgc29kaXBvZGk6ZG9jbmFtZT0iZ2xvdHRvbG9nIGxvZ28uc3ZnIgogICBpZD0ic3ZnOCIKICAgcHJlc2VydmVBc3BlY3RSYXRpbz0ieE1pZFlNaWQgbWVldCIKICAgdmlld0JveD0iMCAwIDQwMCA0MDAiCiAgIGhlaWdodD0iNDAwcHQiCiAgIHdpZHRoPSI0MDBwdCIKICAgdmVyc2lvbj0iMS4wIj4KICA8ZGVmcwogICAgIGlkPSJkZWZzMTIiIC8+CiAgPHNvZGlwb2RpOm5hbWVkdmlldwogICAgIGlua3NjYXBlOmN1cnJlbnQtbGF5ZXI9InN2ZzgiCiAgICAgaW5rc2NhcGU6d2luZG93LW1heGltaXplZD0iMSIKICAgICBpbmtzY2FwZTp3aW5kb3cteT0iLTgiCiAgICAgaW5rc2NhcGU6d2luZG93LXg9Ii04IgogICAgIGlua3NjYXBlOmN5PSIzMDIuMzE2ODkiCiAgICAgaW5rc2NhcGU6Y3g9IjE1OS43MjAzMSIKICAgICBpbmtzY2FwZTp6b29tPSIwLjk5NTgxNjMyIgogICAgIHNob3dncmlkPSJmYWxzZSIKICAgICBpZD0ibmFtZWR2aWV3MTAiCiAgICAgaW5rc2NhcGU6d2luZG93LWhlaWdodD0iMTAyNyIKICAgICBpbmtzY2FwZTp3aW5kb3ctd2lkdGg9IjE5MjAiCiAgICAgaW5rc2NhcGU6cGFnZXNoYWRvdz0iMiIKICAgICBpbmtzY2FwZTpwYWdlb3BhY2l0eT0iMCIKICAgICBndWlkZXRvbGVyYW5jZT0iMTAiCiAgICAgZ3JpZHRvbGVyYW5jZT0iMTAiCiAgICAgb2JqZWN0dG9sZXJhbmNlPSIxMCIKICAgICBib3JkZXJvcGFjaXR5PSIxIgogICAgIGJvcmRlcmNvbG9yPSIjNjY2NjY2IgogICAgIHBhZ2Vjb2xvcj0iI2ZmZmZmZiIgLz4KICA8bWV0YWRhdGEKICAgICBpZD0ibWV0YWRhdGEyIj4KQ3JlYXRlZCBieSBwb3RyYWNlIDEuMTEsIHdyaXR0ZW4gYnkgUGV0ZXIgU2VsaW5nZXIgMjAwMS0yMDEzCjxyZGY6UkRGPgogIDxjYzpXb3JrCiAgICAgcmRmOmFib3V0PSIiPgogICAgPGRjOmZvcm1hdD5pbWFnZS9zdmcreG1sPC9kYzpmb3JtYXQ+CiAgICA8ZGM6dHlwZQogICAgICAgcmRmOnJlc291cmNlPSJodHRwOi8vcHVybC5vcmcvZGMvZGNtaXR5cGUvU3RpbGxJbWFnZSIgLz4KICAgIDxkYzp0aXRsZT48L2RjOnRpdGxlPgogIDwvY2M6V29yaz4KPC9yZGY6UkRGPgo8L21ldGFkYXRhPgogIDxnCiAgICAgaWQ9Imc2IgogICAgIHN0cm9rZT0ibm9uZSIKICAgICBmaWxsPSIjMDAwMDAwIgogICAgIHRyYW5zZm9ybT0ibWF0cml4KDAuMSwwLDAsLTAuMSwtMzAuOTQxMjg3LDQyOS45MDAwMSkiPgogICAgPHBhdGgKICAgICAgIGlkPSJwYXRoNCIKICAgICAgIGQ9Ik0gMTE2MywzNTAyIEMgODAyLDMyOTIgNTkyLDI5NTggNTQwLDI1MDggYyAtMjAsLTE2NiAtOCwtNDU1IDIzLC01ODggODEsLTM0MSAyNzAsLTYxMiA1MjgsLTc1NCAxOTIsLTEwNSA0NzAsLTE0MSA3MDUsLTkyIDI3Myw1OCA0ODcsMjI2IDYxMCw0ODEgODMsMTcxIDEwNCwzMjIgMTA0LDc0NyAwLDI0OCA4LDM0MSA0MSw0NzIgNTgsMjI5IDE4NCwzNzUgMzYwLDQxNSA3NCwxNyAyMTgsMTMgMzAzLC05IDExOCwtMzAgMTg5LC03MiAyODYsLTE3MCAxNzksLTE4MCAyNjAsLTQwMyAyNjAsLTcxNyAwLC0zMzYgLTgzLC01NzkgLTI2NCwtNzcxIC05MCwtOTQgLTE2NywtMTUzIC0yNzQsLTIwNyAtMzksLTIwIC03MiwtNDAgLTcyLC00NCAwLC01IDUyLC01NiAxMTUsLTExNiBsIDExNiwtMTA3IDc4LDQ3IGMgMTA4LDY1IDE4MSwxMjEgMjY0LDIwMiAyMDUsMTk5IDMxOSw0MzkgMzU4LDc1NyAxNSwxMjMgNyw0MDYgLTE2LDUyOSAtNzYsNDE2IC0zMDAsNzMzIC02MTAsODY0IC0xMzgsNTkgLTMzOSw4NSAtNTI3LDcwIC0zNjMsLTI5IC02NDEsLTI3OSAtNzUwLC02NzUgLTIwLC03MSAtMjEsLTEwNCAtMjMsLTQzNCAtMywtMzkyIC02LC00NTMgLTM2LC01NzggLTcwLC0yOTQgLTI1NiwtNDQ5IC01MzksLTQ1MCAtMTg3LDAgLTM1Myw4NCAtNDczLDI0MyAtMTgwLDIzNCAtMjU3LDU1NCAtMjEzLDg4NCA0NiwzNDkgMjA5LDYwNyA0ODksNzcwIDQyLDI1IDc3LDQ5IDc3LDUyIDAsMyAtNDgsNTUgLTEwOCwxMTQgbCAtMTA3LDEwNyB6IiAvPgogIDwvZz4KPC9zdmc+Cg==');
+	background-repeat: no-repeat;
+	background-size: 0.75em;
+	background-position: right 0px top -1px;
+	background-position-top: 3px;
+	width: 0.825em;
+	height: 0.825em;
+	display: inline-block;
+	vertical-align: baseline;
+	opacity: 0.825;
+}
+
+/*a[href*="wikipedia.org"]:hover::after,
+a[href*="wikimedia.org"]:hover::after,
+a[href*="wikimediafoundation.org"]:hover::after,
+a[href*="wikisource.org"]:hover::after {
+	opacity: 0.6;*/
+}
+
+</style>
+</head>
+
+</html>
+
+<body>
+
+<h2>The Language Forest: A Comprehensive List of All Languages and their Language Tree Classifications</h2>
+<!-- <h3>sourcing from ...</h3> -->
+
+<pre id=tree>pulling language data from glottolog and wikidata...</pre>
+
+<script>
+
+glottologNewick = null;
+numSpeakers = null;
+langForestHierarchy = null;
+glottocodeToWikidata = null;
+
+async function load()
+{
+
+	// thanks https://github.com/jasondavies/newick.js/blob/master/src/newick.js (includes copyright notice)
+	var parseNewick = function(s) {
+		var ancestors = [];
+		var tree = {};
+		var tokens = s.split(/\s*(;|\(|\)|,|:)\s*/);
+		for (var i=0; i<tokens.length; i++) {
+			var token = tokens[i];
+			switch (token) {
+				case '(': // new branchset
+					var subtree = {};
+					tree.branchset = [subtree];
+					ancestors.push(tree);
+					tree = subtree;
+					break;
+				case ',': // another branch
+					var subtree = {};
+					ancestors[ancestors.length-1].branchset.push(subtree);
+					tree = subtree;
+					break;
+				case ')': // optional name next
+					tree = ancestors.pop();
+					break;
+				case ':': // optional length next
+					break;
+				default:
+					var x = tokens[i-1];
+					if (x == ')' || x == '(' || x == ',') {
+						tree.name = token;
+					} else if (x == ':') {
+						// tree.length = parseFloat(token); // always 1 for glottolog newick
+					}
+			}
+		}
+		return tree;
+	};
+
+
+	var wikidataRequest = // sparql query to grab number of speakers and wikipedia links for every language that has a glottocode (see https://github.com/glottolog/pyglottolog/blob/dcc8aa1115146e2ce0e605e0a4a287c52d6d8564/src/pyglottolog/links/wikidata.py and https://opendata.stackexchange.com/a/6101)
+	`
+	prefix schema: <http://schema.org/>
+	SELECT ?glottocode ?numspeakers ?wikiurl ?wikiname WHERE
+	{
+		?item wdt:P1394 ?glottocode.
+		OPTIONAL { ?item wdt:P1098 ?numspeakers. }
+		OPTIONAL
+		{
+			?wikiurl schema:about ?item.
+			?wikiurl schema:name ?wikiname.
+			?wikiurl schema:inLanguage "en".
+			FILTER (SUBSTR(str(?wikiurl), 1, 25) = "https://en.wikipedia.org/")
+		}
+	}
+	`;
+
+	function latestGlottologNewickLink( glottologDownloadsSite, specificVersion=false )
+	{
+		var versionUrls = Object.fromEntries( [ ...glottologDownloadsSite.querySelectorAll( "#downloads a" ) ].filter( a => a.innerText.startsWith( "tree_glottolog_newick.txt" ) ).map( a => [  a.closest( ".accordion-group" ).querySelector( ".accordion-heading > a" ).innerText.match(/\d+\.\d+/)[0], a.href ] ) );
+		return versionUrls[ specificVersion ? specificVersion : [...Object.keys(versionUrls)].sort( e => parseFloat(e) )[0] ];
+	}
+
+	[glottologNewick, numSpeakers] = await Promise.all([ // thanks https://stackoverflow.com/a/56153212
+			// thanks https://stackoverflow.com/a/47809709 , https://stackoverflow.com/a/40981298
+			fetch( "https://cors-anywhere.herokuapp.com/https://glottolog.org/meta/downloads" ).then( resp => resp.text() ).then( htmlText => latestGlottologNewickLink( new DOMParser().parseFromString( htmlText, "text/html" ) ) ).then( newickUrl =>
+				fetch( "https://cors-anywhere.herokuapp.com/" + newickUrl ).then( r => r.text() ) // grab language classification newick
+			),
+
+			fetch( "https://query.wikidata.org/sparql?query="+encodeURIComponent( wikidataRequest ), // grab number of speakers of each language
+					{ mode: 'cors', headers: { 'Accept': 'application/json' } } )
+				.then( resp => { return resp.json() } )
+		]);
+	
+	langForestHierarchy = glottologNewick.slice(0, -1).split(";").map(fam => parseNewick(fam+";"));
+	console.log( "langForestHierarchy (glottolog):", langForestHierarchy );
+	console.log( "numSpeakers (wikidata):", numSpeakers );
+
+	glottocodeToWikidata = Object.fromEntries( numSpeakers.results.bindings.map( e => [e.glottocode.value, e] ) );
+
+	function toText( newickNode, level=0 )
+	{
+		var out = ""
+		for( var i = 0; i < level; i++ ) out += " ";
+
+		var nodeName = newickNode.name.slice( 1, -1 ).replace( /''/g, "'" );
+		var infoidx = nodeName.lastIndexOf( " " );
+		var [langname, langdata] = [nodeName.slice(0, infoidx), nodeName.slice(infoidx+1)];
+
+		var glottocode = langdata.match(/(?<=\[)[a-z0-9]{8}(?=\])/)[0];
+		var isProperLanguage = langdata.endsWith( "-l-" );
+		out += (isProperLanguage?"<b>":"")+`${langname}`+(isProperLanguage?"</b>":"")
+			+ (glottocode&&glottocodeToWikidata[glottocode]&&glottocodeToWikidata[glottocode].numspeakers ? ` (~${glottocodeToWikidata[glottocode].numspeakers.value} speakers)` : "")
+			+ (glottocode&&glottocodeToWikidata[glottocode]&&glottocodeToWikidata[glottocode].wikiurl ? ` <a href=${glottocodeToWikidata[glottocode].wikiurl.value} target=_blank>${glottocodeToWikidata[glottocode].wikiname.value}</a>` : "")
+			+ ` <a href=https://glottolog.org/resource/languoid/id/${glottocode} target=_blank>${glottocode}</a>`
+			// + (glottocode && glottocodeToWikidata[glottocode] ? " " + JSON.stringify( glottocodeToWikidata[glottocode] ) : "" )
+			+ "\n";
+
+		if( newickNode.branchset )
+			for( node of newickNode.branchset )
+				out += toText( node, level+4 );
+
+		return out;
+	}
+
+	document.querySelector( "#tree" ).innerHTML = langForestHierarchy.map( tree => toText( tree ) ).join( "\n\n" );
+
+}
+
+
+
+
+load();
+
+
+///// TODOs
+// make wikipedia links grey and subtle and a bit off to the right of the main tree but underline and proper links
+// make links to glottolog (the main link of the language name?)
+// sort by num speakers
+// add restricting to languages with wikipedia links or languages with iso 639-3 code
+// add subtle "(showing k of n direct descendents)" for each node when filtering
+// make everything collapsible (spans?)
+// add cutoff threshold for numspeakers
+// add restrict to -l- language leaves (make sure that's what the -l- means)
+// maybe look into trying to pull endangerment status from glottolog but like eh prolly not
+// search box that restricts tree to any leaf and parents with that in occurrance
+// fix bug with wikipedia link with awadhi being an incubator link instead of the proper wikipedia link.. https://opendata.stackexchange.com/questions/6050/get-wikipedia-urls-sitelinks-in-wikidata-sparql-query
+// add semi subtle unicode folder view branch lookin things
+// add collapse all and expand all buttons for each node and for the whole forest
+// add versioning information and display that the main page is the latest but also give links to the other valid /x.y versions
+// by default restrict to only -l- languages on load
+
+</script>
+</body>
