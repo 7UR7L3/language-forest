@@ -142,7 +142,9 @@ async function load()
 	function latestGlottologNewickLink( glottologDownloadsSite, specificVersion=false )
 	{
 		var versionUrls = Object.fromEntries( [ ...glottologDownloadsSite.querySelectorAll( "#downloads a" ) ].filter( a => a.innerText.startsWith( "tree_glottolog_newick.txt" ) ).map( a => [  a.closest( ".accordion-group" ).querySelector( ".accordion-heading > a" ).innerText.match(/\d+\.\d+/)[0], a.href ] ) );
-		return versionUrls[ specificVersion ? specificVersion : [...Object.keys(versionUrls)].sort( e => parseFloat(e) )[0] ];
+		var version = specificVersion ? specificVersion : [...Object.keys(versionUrls)].sort( (a,b) => parseFloat(b)-parseFloat(a) )[0];
+		console.log( `using glottolog newick tree version ${version} (${versionUrls[version]})` );
+		return versionUrls[ version ];
 	}
 
 	[glottologNewick, numSpeakers] = await Promise.all([ // thanks https://stackoverflow.com/a/56153212
@@ -204,15 +206,16 @@ load();
 // add restricting to languages with wikipedia links or languages with iso 639-3 code
 // add subtle "(showing k of n direct descendents)" for each node when filtering
 // make everything collapsible (spans?)
+// add semi subtle unicode folder view branch lookin things or at least those collapsible line things on the left of subbranch
 // add cutoff threshold for numspeakers
 // add restrict to -l- language leaves (make sure that's what the -l- means)
 // maybe look into trying to pull endangerment status from glottolog but like eh prolly not
 // search box that restricts tree to any leaf and parents with that in occurrance
 // fix bug with wikipedia link with awadhi being an incubator link instead of the proper wikipedia link.. https://opendata.stackexchange.com/questions/6050/get-wikipedia-urls-sitelinks-in-wikidata-sparql-query
-// add semi subtle unicode folder view branch lookin things
 // add collapse all and expand all buttons for each node and for the whole forest
 // add versioning information and display that the main page is the latest but also give links to the other valid /x.y versions
 // by default restrict to only -l- languages on load
+// ramanos is duped for some reason.. prolly just how the language tree was published but seems silly to me. odiai too. silly glottolog
 
 </script>
 </body>
