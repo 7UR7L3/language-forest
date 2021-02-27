@@ -1,5 +1,5 @@
 <!-- 
-- use https://cors-anywhere.herokuapp.com/ when necessary
+- ~~use https://cors-anywhere.herokuapp.com/ when necessary~~ replaced by https://cors.bridged.cc/ ; see https://github.com/Rob--W/cors-anywhere/issues/301 and https://medium.com/bridgedxyz/cors-anywhere-for-everyone-free-reliable-cors-proxy-service-73507192714e
 - request https://glottolog.org/meta/downloads to grab the latest tree_glottolog_newick.txt
 - request https://cdstar.shh.mpg.de/bitstreams/EAEA0-18EC-5079-0173-0/tree_glottolog_newick.txt or whatever it happens to be
 - parse it with https://github.com/jasondavies/newick.js/blob/master/src/newick.js (split on `;` first)
@@ -149,8 +149,8 @@ async function load()
 
 	[glottologNewick, numSpeakers] = await Promise.all([ // thanks https://stackoverflow.com/a/56153212
 			// thanks https://stackoverflow.com/a/47809709 , https://stackoverflow.com/a/40981298
-			fetch( "https://cors-anywhere.herokuapp.com/https://glottolog.org/meta/downloads" ).then( resp => resp.text() ).then( htmlText => latestGlottologNewickLink( new DOMParser().parseFromString( htmlText, "text/html" ) ) ).then( newickUrl =>
-				fetch( "https://cors-anywhere.herokuapp.com/" + newickUrl ).then( r => r.text() ) // grab language classification newick
+			fetch( "https://cors.bridged.cc/https://glottolog.org/meta/downloads" ).then( resp => resp.text() ).then( htmlText => latestGlottologNewickLink( new DOMParser().parseFromString( htmlText, "text/html" ) ) ).then( newickUrl =>
+				fetch( "https://cors.bridged.cc/" + newickUrl ).then( r => r.text() ) // grab language classification newick
 			),
 
 			fetch( "https://query.wikidata.org/sparql?query="+encodeURIComponent( wikidataRequest ), // grab number of speakers of each language
@@ -216,7 +216,6 @@ load();
 // add versioning information and display that the main page is the latest but also give links to the other valid /x.y versions
 // by default restrict to only -l- languages on load
 // ramanos is duped for some reason.. prolly just how the language tree was published but seems silly to me. odiai too. silly glottolog
-// could consider adding exportation of a given view to a static site or to a pdf or something
 
 </script>
 </body>
