@@ -152,6 +152,7 @@ async function load()
 
 	function latestGlottologNewickLink( glottologDownloadsSite, specificVersion=false )
 	{
+		pizza = glottologDownloadsSite
 		var versionUrls = Object.fromEntries( [ ...glottologDownloadsSite.querySelectorAll( "#downloads a" ) ].filter( a => a.innerText.startsWith( "tree_glottolog_newick.txt" ) ).map( a => [  a.closest( ".accordion-group" ).querySelector( ".accordion-heading > a" ).innerText.match(/\d+\.\d+/)[0], a.href ] ) );
 		var version = specificVersion ? specificVersion : [...Object.keys(versionUrls)].sort( (a,b) => parseFloat(b)-parseFloat(a) )[0];
 		console.log( `using glottolog newick tree version ${version} (${versionUrls[version]})` );
@@ -160,8 +161,8 @@ async function load()
 
 	[glottologNewick, numSpeakers] = await Promise.all([ // thanks https://stackoverflow.com/a/56153212
 			// thanks https://stackoverflow.com/a/47809709 , https://stackoverflow.com/a/40981298
-			fetch( "https://cors.bridged.cc/https://glottolog.org/meta/downloads" ).then( resp => resp.text() ).then( htmlText => latestGlottologNewickLink( new DOMParser().parseFromString( htmlText, "text/html" ) ) ).then( newickUrl =>
-				fetch( "https://cors.bridged.cc/" + newickUrl ).then( r => r.text() ) // grab language classification newick
+			fetch( "https://api.allorigins.win/raw?url=https://glottolog.org/meta/downloads" ).then( resp => resp.text() ).then( htmlText => latestGlottologNewickLink( new DOMParser().parseFromString( htmlText, "text/html" ) ) ).then( newickUrl =>
+				fetch( "https://api.allorigins.win/raw?url=" + newickUrl ).then( r => r.text() ) // grab language classification newick
 			),
 
 			fetch( "https://query.wikidata.org/sparql?query="+encodeURIComponent( wikidataRequest ), // grab number of speakers of each language
